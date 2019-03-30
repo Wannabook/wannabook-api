@@ -1,0 +1,27 @@
+{
+  "name": "wannabook-api",
+  "version": "1.0.0",
+  "description": "Wannabook project",
+  "main": "app.js",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "server": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wannabook/wannabook-api.git"
+  },
+  "author": "Wannabook team",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wannabook/wannabook-api/issues"
+  },
+  "homepage": "https://github.com/Wannabook/wannabook-api#readme"
+}
