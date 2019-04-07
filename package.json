@@ -4,11 +4,11 @@
   "description": "Wannabook project",
   "main": "app.js",
   "dependencies": {
-    "body-parser": "^1.18.3",
-    "express": "^4.16.4"
+    "body-parser": "1.18.3",
+    "express": "4.16.4"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "nodemon": "1.18.10"
   },
   "scripts": {
     "start": "node server.js",
