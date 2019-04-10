@@ -5,10 +5,10 @@ const config = require('./config/config');
 
 const app = express();
 
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => res.json({msg: 'Wannabook!'}));
+app.get('/', (req, res) => res.json({ msg: 'Wannabook!' }));
 
 app.use('/test', test);
 
