@@ -12,3 +12,10 @@ This is a repo for the API part of Wannabook.
 * Run `npm i` to install dependencies
 * Run `npm run start:dev` to start server with nodemon
 * Go to ```http://localhost:5000/```
+
+### Working with database
+To generate initial DB and (or) run outstanding migrations, create `config.json` based on `config-example.json`. Put quotes around every entry except `null`s.
+
+Run `sequelize db:create` and it will create the DB 'Wannabook' as specified in `config.json`.
+
+Inside of migrations folder, you will find all migrations. To run them, do `sequelize db:migrate` and only new migrations will run. They will update your DB accordingly.
