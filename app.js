@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const test = require('./routes/test');
 const config = require('./configuration/config');
 const models = require('./models');
+require('./.env');
 
 const app = express();
 

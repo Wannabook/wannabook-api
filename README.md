@@ -10,7 +10,13 @@ This is a repo for the API part of Wannabook.
 
 ### Server Setup
 * Run `npm i` to install dependencies
+* Create a `config.json` file inside `/config`. This is responsible for syncing your models with database
 * Run `npm run start:dev` to start server with nodemon
+* Add environment variables required to run the application to .env file in project root. Don't forget to puut quotes around values.
+```
+process.env.VAR1="Some value"
+process.env.VAR2="Another Value"
+```
 * Go to ```http://localhost:5000/```
 
 ### Working with database
