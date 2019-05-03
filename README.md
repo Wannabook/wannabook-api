@@ -20,8 +20,10 @@ process.env.VAR2="Another Value"
 * Go to ```http://localhost:5000/```
 
 ### Working with database
-To generate initial DB and (or) run outstanding migrations, create `config.json` based on `config-example.json`. Put quotes around every entry except `null`s.
+1. To generate initial DB and (or) run outstanding migrations, create `config.json` based on `config-example.json`. Put quotes around every entry except `null`s.
 
-Run `sequelize db:create` and it will create the DB 'Wannabook' as specified in `config.json`.
+2. Run `sequelize db:create` and it will create the DB 'Wannabook' as specified in `config.json`.
 
-Inside of migrations folder, you will find all migrations. To run them, do `sequelize db:migrate` and only new migrations will run. They will update your DB accordingly.
+3. Inside of migrations folder, you will find all migrations. To run them, do `sequelize db:migrate` and only new migrations will run. They will update your DB accordingly.
+
+4. Fill the DB with test date by running `npx sequelize db:seed:all`
