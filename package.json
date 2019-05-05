@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "babel-eslint": "10.0.1",
+    "env-cmd": "8.0.2",
     "eslint": "5.16.0",
     "eslint-config-airbnb": "17.1.0",
     "eslint-config-prettier": "4.1.0",
@@ -39,7 +40,13 @@
   },
   "scripts": {
     "start": "node app.js",
-    "start:dev": "nodemon app.js"
+    "dev": "npm run start:dev",
+    "start:dev": "env-cmd -f ./env/dev.env nodemon app.js",
+    "start:staging": "env-cmd -f ./env/staging.env nodemon app.js",
+    "start:production": "env-cmd -f ./env/production.env nodemon app.js",
+    "migrate:dev": "env-cmd -f ./env/dev.env sequelize db:create && env-cmd -f ./env/dev.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize db:seed:all",
+    "migrate:staging": "env-cmd -f ./env/staging.env sequelize db:create && env-cmd -f ./env/staging.env sequelize db:migrate && env-cmd -f ./env/staging.env npx sequelize db:seed:all",
+    "migrate:production": "env-cmd -f ./env/production.env sequelize db:create && env-cmd -f ./env/production.env sequelize db:migrate && env-cmd -f ./env/production.env npx sequelize db:seed:all"
   },
   "repository": {
     "type": "git",

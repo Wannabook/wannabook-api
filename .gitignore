@@ -2,4 +2,7 @@
 /node_modules
 package-lock.json
 /config/config.json
-.env
+
+.env/dev.env
+.env/staging.env
+.env/production.env
