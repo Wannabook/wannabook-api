@@ -39,7 +39,6 @@
     ]
   },
   "scripts": {
-    "start": "node app.js",
     "dev": "npm run start:dev",
     "start:dev": "env-cmd -f ./env/dev.env nodemon app.js",
     "start:staging": "env-cmd -f ./env/staging.env nodemon app.js",
