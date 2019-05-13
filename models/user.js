@@ -97,10 +97,9 @@ class UserModel {
 
         const users = readUsers();
         const userToDelete = users.find(user => user.id === id);
-        const index = users.indexOf(userToDelete);
-        if (index > -1) {
-          users.splice(index, 1);
-          saveUsers(users);
+        if (userToDelete) {
+          const retainUsers = users.filter(u => u.id !== userToDelete.id);
+          saveUsers(retainUsers);
           resolve(userToDelete);
         }
         reject('User not found');
