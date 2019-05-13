@@ -1,5 +1,7 @@
 .idea/
 /node_modules
+tmp/
+
 /db/config/config.js
 
 .env/dev.env

@@ -9,8 +9,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/', userHandler);
-app.get('/users', userHandler);
+app.use(userHandler);
 
 const port = process.env.PORT || 5000;
 
