@@ -1,17 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const test = require('./routes/test');
 const models = require('./db/models');
+const userHandler = require('./routes/user');
 
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => res.json({ msg: 'Wannabook!' }));
-
-app.use('/test', test);
+app.get('/', userHandler);
+app.get('/users', userHandler);
 
 const port = process.env.PORT || 5000;
 
