@@ -1,4 +1,9 @@
 .idea/
 /node_modules
 tmp/
-package-lock.json
+
+/db/config/config.js
+
+.env/dev.env
+.env/staging.env
+.env/production.env

@@ -1,6 +1,6 @@
 const auth = (req, res, next) => {
   try {
-    if (Math.random() > 0.5) {
+    if (Math.random() > 0.2) {
       throw new Error();
     }
     next();

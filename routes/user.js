@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+
+const models = require('../db/models');
 const { UserModel } = require('../models/user');
 const { auth } = require('../middleware/auth');
 
@@ -12,9 +14,11 @@ router.post('/users', async (req, res) => {
   }
 });
 
+// TODO: I have set up only GET method to connect to DB.
+//  Should be later done with the rest of routes
 router.get('/users', auth, async (req, res) => {
   try {
-    const users = await UserModel.getUsers();
+    const users = await models['User'].findAll();
     res.status(200).send(users);
   } catch (e) {
     res.status(400).send(e);

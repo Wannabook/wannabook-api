@@ -1,20 +1,18 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const userRouter = require('./routes/user');
-const config = require('./config/config');
+
+const models = require('./db/models');
+const userHandler = require('./routes/user');
 
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => res.json({ msg: 'Wannabook!' }));
+app.use(userHandler);
 
-app.use(userRouter);
+const port = process.env.PORT || 5000;
 
-const devPort = config.app.port;
-const port = process.env.PORT || devPort;
-
-app.listen(port, () => {
-  console.log('Server is up on port ' + port);
+models.sequelize.sync().then(function() {
+  app.listen(port, () => console.log(`Server running on port ${port}`));
 });
