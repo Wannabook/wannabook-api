@@ -3,30 +3,39 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Users', {
+    return queryInterface.createTable('Organizations', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      firstName: {
+      legal_name: {
         type: Sequelize.STRING,
       },
-      lastName: {
+      name: {
         type: Sequelize.STRING,
       },
-      email: {
-        type: Sequelize.STRING,
-      },
-      password: {
-        type: Sequelize.STRING,
-      },
-      access_tokens: {
-        type: Sequelize.STRING,
-      },
-      refresh_token: {
+      description: {
         type: Sequelize.TEXT,
+      },
+      contact_email: {
+        type: Sequelize.STRING,
+      },
+      contact_phone: {
+        type: Sequelize.STRING,
+      },
+      location_city: {
+        type: Sequelize.STRING,
+      },
+      location_addr: {
+        type: Sequelize.STRING,
+      },
+      location_lat: {
+        type: Sequelize.STRING, // should be fixed to accept floats
+      },
+      location_long: {
+        type: Sequelize.STRING, // should be fixed to accept floats
       },
       createdAt: {
         allowNull: false,
@@ -39,6 +48,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Users');
+    return queryInterface.dropTable('Organizations');
   },
 };
