@@ -36,12 +36,16 @@ router.delete('/users/:id', async (req, res) => {
   try {
     const _id = req.params.id;
     const user = await models['User'].findByPk(_id);
-    await models['User'].destroy({
-      where: {
-        id: _id,
-      },
-    });
-    res.status(200).send(user);
+    if (user) {
+      await models['User'].destroy({
+        where: {
+          id: _id,
+        },
+      });
+      res.status(200).send(user);
+    } else {
+      res.status(404).send(e);
+    }
   } catch (e) {
     res.status(404).send(e);
   }
