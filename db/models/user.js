@@ -1,4 +1,6 @@
-'use strict';
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
@@ -7,14 +9,64 @@ module.exports = (sequelize, DataTypes) => {
       lastName: DataTypes.STRING,
       email: DataTypes.STRING,
       password: DataTypes.STRING,
-      access_tokens: DataTypes.STRING,
-      refresh_token: DataTypes.TEXT,
+      access_tokens: DataTypes.JSON,
+      refresh_token: DataTypes.JSON,
     },
     {}
   );
   User.associate = function(models) {
     // associations can be defined here
   };
+
+  User.prototype.toJSON = function() {
+    const user = this;
+
+    return {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    };
+  };
+
+  User.prototype.generateAuthToken = async function() {
+    const user = this;
+    const token = jwt.sign({ id: user.id.toString() }, process.env.JWT_SECRET, {
+      expiresIn: 3600,
+    });
+
+    try {
+      const accessTokens = JSON.parse(user.access_tokens);
+      user.access_tokens = JSON.stringify(accessTokens.concat({ token }));
+    } catch (e) {
+      user.access_tokens = JSON.stringify([{ token }]);
+    }
+
+    await user.save();
+
+    return token;
+  };
+
+  User.findByCredentials = async (email, password) => {
+    const user = await User.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new Error('Unable to login');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      throw new Error('Wrong password');
+    }
+
+    return user;
+  };
+
+  User.addHook('beforeCreate', async user => {
+    user.password = await bcrypt.hash(user.password, 8);
+  });
 
   return User;
 };

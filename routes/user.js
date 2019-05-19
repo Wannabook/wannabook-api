@@ -5,11 +5,27 @@ const models = require('../db/models');
 const { auth } = require('../middleware/auth');
 
 router.post('/users', async (req, res) => {
+  const user = await models['User'].build(req.body);
+
   try {
-    const user = await models['User'].create(req.body);
-    res.status(201).send(user);
+    await user.save();
+    const token = await user.generateAuthToken();
+    res.status(201).send({ user, token });
   } catch (e) {
     res.status(400).send(e);
+  }
+});
+
+router.post('/users/login', async (req, res) => {
+  try {
+    const user = await models['User'].findByCredentials(
+      req.body.email,
+      req.body.password
+    );
+    const token = await user.generateAuthToken();
+    res.send({ user, token });
+  } catch (e) {
+    res.status(400).send({ error: e.message });
   }
 });
 
