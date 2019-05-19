@@ -6,15 +6,13 @@ const { auth } = require('../middleware/auth');
 
 router.post('/users', async (req, res) => {
   try {
-    const user = await UserModel.save(req.body);
+    const user = await models['User'].create(req.body);
     res.status(201).send(user);
   } catch (e) {
     res.status(400).send(e);
   }
 });
 
-// TODO: I have set up only GET method to connect to DB.
-//  Should be later done with the rest of routes
 router.get('/users', auth, async (req, res) => {
   try {
     const users = await models['User'].findAll();
@@ -27,7 +25,7 @@ router.get('/users', auth, async (req, res) => {
 router.get('/users/:id', async (req, res) => {
   try {
     const _id = req.params.id;
-    const user = await UserModel.getUsersById(_id);
+    const user = await models['User'].findByPk(_id);
     res.status(200).send(user);
   } catch (e) {
     res.status(400).send(e);
@@ -37,7 +35,12 @@ router.get('/users/:id', async (req, res) => {
 router.delete('/users/:id', async (req, res) => {
   try {
     const _id = req.params.id;
-    const user = await UserModel.delete(_id);
+    const user = await models['User'].findByPk(_id);
+    await models['User'].destroy({
+      where: {
+        id: _id,
+      },
+    });
     res.status(200).send(user);
   } catch (e) {
     res.status(404).send(e);
