@@ -3,7 +3,7 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Users', {
+    return queryInterface.createTable('Staffs', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -19,14 +19,18 @@ module.exports = {
       email: {
         type: Sequelize.STRING,
       },
-      password: {
+      phone: {
         type: Sequelize.STRING,
       },
-      access_tokens: {
+      title: {
         type: Sequelize.STRING,
       },
-      refresh_token: {
-        type: Sequelize.TEXT,
+      OrganizationId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Organizations',
+          key: 'id',
+        },
       },
       createdAt: {
         allowNull: false,
@@ -39,6 +43,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Users');
+    return queryInterface.dropTable('Staffs');
   },
 };

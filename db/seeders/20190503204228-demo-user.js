@@ -17,8 +17,8 @@ module.exports = {
       'Users',
       [
         {
-          firstName: 'Dmitry',
-          lastName: 'Lipski',
+          first_name: 'Dmitry',
+          last_name: 'Lipski',
           email: 'dmitry@demo.com',
           password: '123456',
           access_tokens: '',
@@ -27,8 +27,8 @@ module.exports = {
           updatedAt: new Date(),
         },
         {
-          firstName: 'Ilya',
-          lastName: 'Kushlianski',
+          first_name: 'Ilya',
+          last_name: 'Kushlianski',
           email: 'ilya@demo.com',
           password: '123456',
           access_tokens: '',
