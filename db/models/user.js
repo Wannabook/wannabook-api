@@ -1,10 +1,10 @@
-'use strict';
+/* eslint-disable camelcase */
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
+      first_name: DataTypes.STRING,
+      last_name: DataTypes.STRING,
       email: DataTypes.STRING,
       password: DataTypes.STRING,
       access_tokens: DataTypes.STRING,

@@ -5,6 +5,9 @@ module.exports = {
     database: 'wannabook',
     host: '127.0.0.1',
     dialect: 'mysql',
+    dialectOptions: {
+      charset: 'utf8mb4',
+    },
   },
   staging: {
     username: process.env.DB_USERNAME,
