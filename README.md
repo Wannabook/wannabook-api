@@ -11,7 +11,9 @@ This is a repo for the API part of Wannabook.
 
 
 ### Working with database (short, for Linux)
-To create a test DB, run migrations and fill the DB with test data, simply create `config.js` based on `config-example.js` and then run this command: `npm run migrate:dev`
+To create a test DB, run migrations and fill the DB with test data, simply create `config.js` based on `config-example.js` and then run this command: `npm run migrate:dev`.
+
+To delete the entire DB, run `npm run db:drop`.
 
 ### Working with database (long, works on Windows)
 1. To generate initial DB and (or) run outstanding migrations, create `config.js` based on `config-example.js`.
