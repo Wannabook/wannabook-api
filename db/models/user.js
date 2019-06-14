@@ -7,9 +7,16 @@ module.exports = (sequelize, DataTypes) => {
     {
       firstName: DataTypes.STRING,
       lastName: DataTypes.STRING,
-      email: DataTypes.STRING,
+      email: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
       password: DataTypes.STRING,
-      access_tokens: DataTypes.JSON,
+      access_tokens: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: [],
+      },
       refresh_token: DataTypes.JSON,
     },
     {}
@@ -34,13 +41,7 @@ module.exports = (sequelize, DataTypes) => {
       expiresIn: 3600,
     });
 
-    try {
-      const accessTokens = JSON.parse(user.access_tokens);
-      user.access_tokens = JSON.stringify(accessTokens.concat({ token }));
-    } catch (e) {
-      user.access_tokens = JSON.stringify([{ token }]);
-    }
-
+    user.access_tokens = user.access_tokens.concat({ token });
     await user.save();
 
     return token;

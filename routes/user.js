@@ -29,41 +29,59 @@ router.post('/users/login', async (req, res) => {
   }
 });
 
-router.get('/users', auth, async (req, res) => {
+router.post('/users/logout', auth, async (req, res) => {
   try {
-    const users = await models['User'].findAll();
-    res.status(200).send(users);
+    req.user.access_tokens = req.user.access_tokens.filter(token => {
+      return token.token !== req.token;
+    });
+    await req.user.save();
+    res.send();
+  } catch (e) {
+    res.status(500).send();
+  }
+});
+
+router.post('/users/logoutAll', auth, async (req, res) => {
+  try {
+    req.user.access_tokens = [];
+    await req.user.save();
+
+    res.send();
+  } catch (e) {
+    res.status(500).send();
+  }
+});
+
+router.get('/users/me', auth, async (req, res) => {
+  res.send(req.user);
+});
+
+router.patch('/users/me', auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ['firstName', 'lastName', 'email', 'password'];
+  const isValidOperation = updates.every(update =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperation) {
+    return res.status(400).send({ error: 'Invalid updates!' });
+  }
+
+  try {
+    updates.forEach(update => (req.user[update] = req.body[update]));
+    await req.user.save();
+    res.send(req.user);
   } catch (e) {
     res.status(400).send(e);
   }
 });
 
-router.get('/users/:id', async (req, res) => {
+router.delete('/users/me', auth, async (req, res) => {
   try {
-    const _id = req.params.id;
-    const user = await models['User'].findByPk(_id);
-    res.status(200).send(user);
+    await req.user.destroy();
+    res.send(req.user);
   } catch (e) {
-    res.status(400).send(e);
-  }
-});
-
-router.delete('/users/:id', async (req, res) => {
-  try {
-    const _id = req.params.id;
-    const user = await models['User'].findByPk(_id);
-    if (user) {
-      await models['User'].destroy({
-        where: {
-          id: _id,
-        },
-      });
-      res.status(200).send(user);
-    } else {
-      res.status(404).send(e);
-    }
-  } catch (e) {
-    res.status(404).send(e);
+    res.status(500).send();
   }
 });
 
