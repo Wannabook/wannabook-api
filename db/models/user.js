@@ -6,8 +6,8 @@ module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
     'User',
     {
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
+      first_name: DataTypes.STRING,
+      last_name: DataTypes.STRING,
       email: {
         type: DataTypes.STRING,
         unique: true,
@@ -30,8 +30,8 @@ module.exports = (sequelize, DataTypes) => {
     const user = this;
 
     return {
-      firstName: user.firstName,
-      lastName: user.lastName,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
     };
   };
