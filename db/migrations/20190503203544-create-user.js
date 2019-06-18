@@ -18,12 +18,15 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING,
+        unique: true,
       },
       password: {
         type: Sequelize.STRING,
       },
       access_tokens: {
-        type: Sequelize.STRING,
+        type: Sequelize.JSON,
+        allowNull: false,
+        defaultValue: [],
       },
       refresh_token: {
         type: Sequelize.TEXT,

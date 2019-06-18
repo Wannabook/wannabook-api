@@ -5,49 +5,83 @@ const models = require('../db/models');
 const { auth } = require('../middleware/auth');
 
 router.post('/users', async (req, res) => {
+  const user = await models['User'].build(req.body);
+
   try {
-    const user = await models['User'].create(req.body);
-    res.status(201).send(user);
+    await user.save();
+    const token = await user.generateAuthToken();
+    res.status(201).send({ user, token });
   } catch (e) {
-    res.status(400).send(e);
+    res.status(400).send({ error: e.message });
   }
 });
 
-router.get('/users', auth, async (req, res) => {
+router.post('/users/login', async (req, res) => {
   try {
-    const users = await models['User'].findAll();
-    res.status(200).send(users);
+    const user = await models['User'].findByCredentials(
+      req.body.email,
+      req.body.password
+    );
+    const token = await user.generateAuthToken();
+    res.send({ user, token });
   } catch (e) {
-    res.status(400).send(e);
+    res.status(400).send({ error: e.message });
   }
 });
 
-router.get('/users/:id', async (req, res) => {
+router.post('/users/logout', auth, async (req, res) => {
   try {
-    const _id = req.params.id;
-    const user = await models['User'].findByPk(_id);
-    res.status(200).send(user);
+    req.user.access_tokens = req.user.access_tokens.filter(token => {
+      return token.token !== req.token;
+    });
+    await req.user.save();
+    res.send();
   } catch (e) {
-    res.status(400).send(e);
+    res.status(500).send({ error: e.message });
   }
 });
 
-router.delete('/users/:id', async (req, res) => {
+router.post('/users/logoutAll', auth, async (req, res) => {
   try {
-    const _id = req.params.id;
-    const user = await models['User'].findByPk(_id);
-    if (user) {
-      await models['User'].destroy({
-        where: {
-          id: _id,
-        },
-      });
-      res.status(200).send(user);
-    } else {
-      res.status(404).send(e);
-    }
+    req.user.access_tokens = [];
+    await req.user.save();
+
+    res.send();
   } catch (e) {
-    res.status(404).send(e);
+    res.status(500).send({ error: e.message });
+  }
+});
+
+router.get('/users/me', auth, async (req, res) => {
+  res.send(req.user);
+});
+
+router.patch('/users/me', auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = ['first_name', 'last_name', 'email', 'password'];
+  const isValidOperation = updates.every(update =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperation) {
+    return res.status(400).send({ error: 'Invalid updates!' });
+  }
+
+  try {
+    updates.forEach(update => (req.user[update] = req.body[update]));
+    await req.user.save();
+    res.send(req.user);
+  } catch (e) {
+    res.status(400).send({ error: e.message });
+  }
+});
+
+router.delete('/users/me', auth, async (req, res) => {
+  try {
+    await req.user.destroy();
+    res.send(req.user);
+  } catch (e) {
+    res.status(500).send({ error: e.message });
   }
 });
 
