@@ -18,7 +18,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: [],
       },
-      refresh_token: DataTypes.JSON,
+      refresh_token: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: [],
+      },
     },
     {}
   );
@@ -27,12 +31,10 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   User.prototype.toJSON = function() {
-    const user = this;
-
     return {
-      first_name: user.first_name,
-      last_name: user.last_name,
-      email: user.email,
+      first_name: this.first_name,
+      last_name: this.last_name,
+      email: this.email,
     };
   };
 
