@@ -50,9 +50,9 @@
     "start:dev": "env-cmd -f ./env/dev.env nodemon app.js",
     "start:staging": "env-cmd -f ./env/staging.env nodemon app.js",
     "start:production": "env-cmd -f ./env/production.env nodemon app.js",
-    "migrate:dev": "env-cmd -f ./env/dev.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/dev.env npx sequelize db:seed:all",
-    "migrate:staging": "env-cmd -f ./env/staging.env sequelize db:migrate && env-cmd -f ./env/staging.env npx sequelize db:seed:all",
-    "migrate:production": "env-cmd -f ./env/production.env sequelize db:migrate && env-cmd -f ./env/production.env npx sequelize db:seed:all",
+    "migrate:dev": "env-cmd -f ./env/dev.env sequelize db:create && env-cmd -f ./env/dev.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/dev.env npx sequelize db:seed:all",
+    "migrate:staging": "env-cmd -f ./env/staging.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/staging.env npx sequelize db:seed:all",
+    "migrate:production": "env-cmd -f ./env/production.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/production.env npx sequelize db:seed:all",
     "db:drop:dev": "env-cmd -f ./env/dev.env sequelize db:drop",
     "db:create:dev": "env-cmd -f ./env/dev.env sequelize db:create"
   },
