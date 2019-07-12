@@ -13,7 +13,7 @@
     "pg": "7.11.0",
     "pg-hstore": "2.3.3",
     "sequelize": "5.6.0",
-    "sequelize-cli": "5.4.0",
+    "sequelize-cli": "5.5.0",
     "uuid": "3.3.2"
   },
   "devDependencies": {
@@ -50,9 +50,9 @@
     "start:dev": "env-cmd -f ./env/dev.env nodemon app.js",
     "start:staging": "env-cmd -f ./env/staging.env nodemon app.js",
     "start:production": "env-cmd -f ./env/production.env nodemon app.js",
-    "migrate:dev": "env-cmd -f ./env/dev.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/dev.env npx sequelize db:seed:all",
-    "migrate:staging": "env-cmd -f ./env/staging.env sequelize db:migrate && env-cmd -f ./env/staging.env npx sequelize db:seed:all",
-    "migrate:production": "env-cmd -f ./env/production.env sequelize db:migrate && env-cmd -f ./env/production.env npx sequelize db:seed:all",
+    "migrate:dev": "env-cmd -f ./env/dev.env sequelize db:create && env-cmd -f ./env/dev.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/dev.env npx sequelize db:seed:all",
+    "migrate:staging": "env-cmd -f ./env/staging.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/staging.env npx sequelize db:seed:all",
+    "migrate:production": "env-cmd -f ./env/production.env sequelize db:migrate && env-cmd -f ./env/dev.env npx sequelize-cli db:seed:undo:all && env-cmd -f ./env/production.env npx sequelize db:seed:all",
     "db:drop:dev": "env-cmd -f ./env/dev.env sequelize db:drop",
     "db:create:dev": "env-cmd -f ./env/dev.env sequelize db:create"
   },

@@ -4,6 +4,6 @@ tmp/
 
 /db/config/config.js
 
-.env/dev.env
-.env/staging.env
-.env/production.env
+env/dev.env
+env/staging.env
+env/production.env
