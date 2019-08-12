@@ -18,3 +18,5 @@ const port = process.env.PORT || 5000;
 models.sequelize.sync().then(function() {
   app.listen(port, () => console.log(`Server running on port ${port}`));
 });
+
+module.exports = port;
