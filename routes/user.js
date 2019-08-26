@@ -50,3 +50,63 @@ router.delete('/users/me', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+router.post('/test-db-ops', (req, res) => {
+  models['User']
+    .findOne({ where: { email: 'ilya@demo.com' } })
+    // .then(user => {
+    //   user.refresh_token
+    //   return user.removeAccessToken('token2');
+    //   // return user.addAccessToken('cfffd2');
+    // })
+    .then(user => {
+      res.send(user.refresh_token);
+    });
+});
+
+// remove something from array
+
+// models['User']
+// .findOne({
+//   where: {
+//     email: 'ilya@demo.com',
+//   },
+// })
+// .then(user => {
+//   // const restTokens = user.access_tokens.filter(t => t !== 'someOtherToken');
+//   user
+//   .update(
+//     {
+//       access_tokens: restTokens,
+//     },
+//     {
+//       where: {
+//         email: 'ilya@demo.com',
+//       },
+//     }
+//   )
+//   .then(user => res.json(user));
+// });
+
+// add something to array
+// models['User']
+// .findOne({
+//   where: {
+//     email: 'ilya@demo.com',
+//   },
+// })
+// .then(user => {
+//   user.access_tokens.push('sometoken');
+//   user
+//   .update(
+//     {
+//       access_tokens: user.access_tokens,
+//     },
+//     {
+//       where: {
+//         email: 'ilya@demo.com',
+//       },
+//     }
+//   )
+//   .then(user => res.json(user));
+// });

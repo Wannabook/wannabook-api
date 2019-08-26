@@ -68,6 +68,27 @@ module.exports = (sequelize, DataTypes) => {
     return user;
   };
 
+  User.prototype.addAccessToken = function(token) {
+    const user = this;
+    user.access_tokens = user.access_tokens.concat(token);
+
+    return user.save();
+  };
+
+  User.prototype.updateRefreshToken = function(token) {
+    const user = this;
+    user.refresh_token = token;
+
+    return user.save();
+  };
+
+  User.prototype.removeAccessToken = function(token) {
+    const user = this;
+    user.access_tokens = user.access_tokens.filter(t => t !== token);
+
+    return user.save();
+  };
+
   User.addHook('beforeCreate', async user => {
     user.password = await bcrypt.hash(user.password, 8);
   });

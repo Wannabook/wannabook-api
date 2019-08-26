@@ -11,16 +11,22 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 router.get('/users/login/google/callback', async (req, res) => {
-  // TODO add error handling here
+  // TODO add error handling and param validation here
   const code = req.query.code;
   const { tokens } = await oauth2Client.getToken(code);
+  const { email } = await oauth2Client.getTokenInfo(currentToken);
   oauth2Client.setCredentials(tokens);
-  res.redirect(
-    `http://localhost:8080/auth?access_token=${tokens.access_token}`
-  );
+
+  User.findOne({ where: { email } }).then(async user => {
+    // TODO use bcrypt to hash data stored in DB
+    await user.updateRefreshToken(tokens.refresh_token);
+    res.redirect(
+      `http://localhost:8080/auth?access_token=${tokens.access_token}`
+    );
+  });
 });
 
-router.post('/users/login/google/getAuthUrl', async (req, res) => {
+router.post('/users/login/google/authUrl', async (req, res) => {
   const scope = [
     'https://www.googleapis.com/auth/plus.me',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -47,48 +53,28 @@ router.post('/users/login/google/checktoken', async (req, res) => {
     oauth2Client.setCredentials({});
     if (Number(e.code) === 400) {
       console.warn('tokenInfo', tokenInfo);
-      User.findOne(
-        { email: tokenInfo.email },
-        'refreshToken',
-        async (err, body) => {
-          const { refreshToken } = body || {};
-          if (err || !refreshToken) {
-            res.status(401).send(e.message);
-
-            return;
+      User.findOne({ where: { email: tokenInfo.email } })
+        .then(async user => {
+          if (!user.refresh_token) {
+            res.status(401).send();
           }
 
           oauth2Client.setCredentials({ refresh_token: refreshToken });
+          const newAccessToken = await oauth2Client.getAccessToken();
 
-          try {
-            const newAccessToken = await oauth2Client.getAccessToken();
-            console.warn('newAccessToken:', newAccessToken);
-            // TODO store new access_token in DB
-            oauth2Client.setCredentials({});
+          // TODO use bcrypt to hash data stored in DB
+          await user.addAccessToken(newAccessToken);
+          await user.removeAccessToken(currentToken);
+          console.log('deleted old token:', deleted);
 
-            // TODO use bcrypt to hash data stored in DB
-            await User.update(
-              { accessTokens: currentToken },
-              { $push: { accessTokens: newAccessToken.token } },
-              { upsert: true }
-            ).exec();
-            console.warn('added new token to tokens array of this user');
-            // TODO Fix access token not being deleted from tokens array
-            const deleted = await User.update(
-              { accessTokens: currentToken },
-              { $pull: { accessTokens: currentToken } }
-            ).exec();
-
-            console.log('deleted old token:', deleted);
-
-            res.send(newAccessToken);
-          } catch (e) {
-            console.warn('error trying to getAccessToken?', e);
-            oauth2Client.setCredentials({});
-            res.status(401).send(e.message);
-          }
-        }
-      );
+          oauth2Client.setCredentials({});
+          res.send(newAccessToken);
+        })
+        .catch(e => {
+          console.warn('error trying to getAccessToken?', e);
+          oauth2Client.setCredentials({});
+          res.status(401).send(e.message);
+        });
     } else {
       res.status(e.code).send(e.message);
     }
