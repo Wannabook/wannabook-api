@@ -1,6 +1,6 @@
 const express = require('express');
-const { auth } = require('../middleware/auth');
-const models = require('../db/models');
+const { auth } = require('../../middleware/auth');
+const models = require('../../db/models');
 
 const router = express.Router();
 
@@ -39,3 +39,5 @@ router.post('/users/logoutAll', auth, async (req, res) => {
     res.status(500).send({ error: e.message });
   }
 });
+
+module.exports = router;

@@ -1,27 +1,37 @@
 const express = require('express');
 const { google } = require('googleapis');
-const { port } = require('../app');
+const models = require('../../db/models');
 
 const router = express.Router();
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID_GOOGLE,
   process.env.CLIENT_SECRET_GOOGLE,
-  `http://localhost:${port}/users/login/google/callback`
+  `http://localhost:${process.env.PORT}/users/login/google/callback`
 );
 
 router.get('/users/login/google/callback', async (req, res) => {
   // TODO add error handling and param validation here
   const code = req.query.code;
   const { tokens } = await oauth2Client.getToken(code);
-  const { email } = await oauth2Client.getTokenInfo(currentToken);
+  const { email } = await oauth2Client.getTokenInfo(tokens.access_token);
   oauth2Client.setCredentials(tokens);
 
-  User.findOne({ where: { email } }).then(async user => {
-    // TODO use bcrypt to hash data stored in DB
-    await user.updateRefreshToken(tokens.refresh_token);
+  models['User'].findOne({ where: { email } }).then(async user => {
+    if (user) {
+      // TODO use bcrypt to hash data stored in DB
+      await user.removeOldAccessTokens();
+      await user.updateRefreshToken(tokens.refresh_token);
+      await user.addAccessToken(tokens.access_token);
+    } else {
+      // TODO create a user in our table with all info
+      // TODO also use bcrypt
+      // oauth2Client.userinfo.get?
+    }
     res.redirect(
-      `http://localhost:8080/auth?access_token=${tokens.access_token}`
+      `http://localhost:8080/auth/google/token?access_token=${
+        tokens.access_token
+      }`
     );
   });
 });
@@ -52,6 +62,7 @@ router.post('/users/login/google/checktoken', async (req, res) => {
     // When token is invalid, error is 400 (bad request)
     oauth2Client.setCredentials({});
     if (Number(e.code) === 400) {
+      // eslint-disable-next-line no-console
       console.warn('tokenInfo', tokenInfo);
       User.findOne({ where: { email: tokenInfo.email } })
         .then(async user => {
@@ -80,3 +91,5 @@ router.post('/users/login/google/checktoken', async (req, res) => {
     }
   }
 });
+
+module.exports = router;
