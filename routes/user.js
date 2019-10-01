@@ -16,7 +16,7 @@ router.post('/users', async (req, res) => {
   }
 });
 
-router.get('/users/me', auth, async (req, res) => {
+router.get('/users/me', auth, (req, res) => {
   res.send(req.user);
 });
 
@@ -49,19 +49,20 @@ router.delete('/users/me', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+router.post('/test-db-ops', async (req, res) => {
+  const user = await models['User'].build({
+    first_name: 'given_name',
+    last_name: 'family_name',
+    // email,
+    // access_tokens: [tokens.access_token],
+    // refresh_token: tokens.refresh_token,
+  });
 
-router.post('/test-db-ops', (req, res) => {
-  models['User']
-    .findOne({ where: { email: 'ilya@demo.com' } })
-    // .then(user => {
-    //   user.refresh_token
-    //   return user.removeAccessToken('token2');
-    //   // return user.addAccessToken('cfffd2');
-    // })
-    .then(user => {
-      res.send(user.refresh_token);
-    });
+  try {
+    await user.save();
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 // remove something from array
@@ -110,3 +111,5 @@ router.post('/test-db-ops', (req, res) => {
 //   )
 //   .then(user => res.json(user));
 // });
+
+module.exports = router;

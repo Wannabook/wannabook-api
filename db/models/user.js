@@ -12,16 +12,18 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         unique: true,
       },
-      password: DataTypes.STRING,
+      password: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       access_tokens: {
         type: DataTypes.JSON,
-        allowNull: false,
+        allowNull: true,
         defaultValue: [],
       },
       refresh_token: {
-        type: DataTypes.JSON,
-        allowNull: false,
-        defaultValue: [],
+        type: DataTypes.STRING,
+        allowNull: true,
       },
     },
     {}
@@ -68,6 +70,18 @@ module.exports = (sequelize, DataTypes) => {
     return user;
   };
 
+  User.findByEmail = async email => {
+    const user = await User.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new Error('Unable to login');
+    }
+
+    return user;
+  };
+
   User.prototype.addAccessToken = function(token) {
     const user = this;
     user.access_tokens = user.access_tokens.concat(token);
@@ -97,7 +111,9 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   User.addHook('beforeCreate', async user => {
-    user.password = await bcrypt.hash(user.password, 8);
+    if (user.password) {
+      user.password = await bcrypt.hash(user.password, 8);
+    }
   });
 
   return User;
