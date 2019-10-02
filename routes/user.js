@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const models = require('../db/models');
-const { auth } = require('../middleware/auth');
+const { auth, checkToken } = require('../middleware/auth');
 
 router.post('/users', async (req, res) => {
   const user = await models['User'].build(req.body);
@@ -16,7 +16,7 @@ router.post('/users', async (req, res) => {
   }
 });
 
-router.get('/users/me', auth, (req, res) => {
+router.get('/users/me', auth, checkToken, (req, res) => {
   res.send(req.user);
 });
 

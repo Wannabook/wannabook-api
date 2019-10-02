@@ -40,4 +40,6 @@ router.post('/users/logoutAll', auth, async (req, res) => {
   }
 });
 
+// TODO: Create signup routes!!!
+
 module.exports = router;
