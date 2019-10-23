@@ -5,3 +5,7 @@ exports.AUTH_METHOD = {
   VK: 'vk',
   ODNOKLASSNIKI: 'ok',
 };
+
+exports.ACCESS_TOKEN_HEADER = 'Authorization';
+exports.AUTH_METHOD_HEADER = 'X-Auth-Method';
+exports.ID_TOKEN_HEADER = 'X-Id-Token';

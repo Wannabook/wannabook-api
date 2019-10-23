@@ -15,15 +15,17 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use(userHandler);
-app.use(organizationHandler);
-app.use(googleAuth);
-app.use(loginPasswordAuth);
+const basePath = `/api/v${process.env.API_VERSION}`;
+
+app.use(basePath, userHandler);
+app.use(basePath, organizationHandler);
+app.use(basePath, googleAuth);
+app.use(basePath, loginPasswordAuth);
 
 app.locals.oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID_GOOGLE,
   process.env.CLIENT_SECRET_GOOGLE,
-  `http://localhost:${process.env.PORT}/users/login/google/callback`
+  `http://localhost:${process.env.PORT}${basePath}/users/login/google/callback`
 );
 
 app.locals.oauth = google.oauth2({

@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const models = require('../db/models');
-const { auth, checkToken } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
+// TODO: Should not be post since post should create a user. Here we just generate a new token
 router.post('/users', async (req, res) => {
   const user = await models['User'].build(req.body);
 
+  // TODO: move the token generating logic into auth?
   try {
     await user.save();
     const token = await user.generateAuthToken();
@@ -16,8 +18,8 @@ router.post('/users', async (req, res) => {
   }
 });
 
-router.get('/users/me', auth, checkToken, (req, res) => {
-  res.send(req.user);
+router.get('/users/me', auth, (req, res) => {
+  res.send({ user: req.user, accessToken: req.accessToken });
 });
 
 router.patch('/users/me', auth, async (req, res) => {
@@ -40,6 +42,7 @@ router.patch('/users/me', auth, async (req, res) => {
   }
 });
 
+// TODO: do we have this functionality on UI? like 'delete account'...
 router.delete('/users/me', auth, async (req, res) => {
   try {
     await req.user.destroy();
