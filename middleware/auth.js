@@ -8,20 +8,6 @@ const {
 const models = require('../db/models');
 const { AUTH_METHOD } = require('../routes/auth/consts');
 
-async function getEmailByIdToken(client, idToken) {
-  const ticket = await client.verifyIdToken({
-    idToken,
-    // audience: CLIENT_ID,  // Specify the CLIENT_ID of the app that accesses the backend
-    // Or, if multiple clients access the backend:
-    //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
-  });
-  const payload = ticket.getPayload();
-
-  return payload['email'];
-  // If request specified a G Suite domain:
-  //const domain = payload['hd'];
-}
-
 const auth = async (req, res, next) => {
   const token = getTokenFromRequest(req);
   const authType = req.header(AUTH_METHOD_HEADER);
@@ -30,7 +16,9 @@ const auth = async (req, res, next) => {
 
   if (!token || !authType) {
     // TODO: process these errors on UI (WNB-163)
-    res.status(401).send('Either token or X-Auth-Method header were not set');
+    return res
+      .status(401)
+      .send('Either token or X-Auth-Method header were not set');
   }
 
   let user;
@@ -44,49 +32,61 @@ const auth = async (req, res, next) => {
           user = await models['User'].findByPk(decoded.id);
         } catch (e) {
           // TODO: test the case when jwt fails verification
-          res.status(401).send(e);
-
-          return;
+          return res.status(401).send(e);
         }
       }
       break;
 
     case AUTH_METHOD.GOOGLE:
       {
-        const { oauth2Client } = req.app.locals;
-        oauth2Client.setCredentials({ access_token: token });
-
+        // TODO: perform checks for missing headers/tokens in a single place
         if (!idToken) return res.sendStatus(400);
 
         try {
-          const email = await getEmailByIdToken(oauth2Client, idToken);
+          const decoded = jwt.decode(idToken);
 
-          console.warn('email', email);
+          if (decoded) {
+            const { email } = decoded;
+            console.warn('decoded email', email);
+            user = await models['User'].findByEmail(email);
+          }
 
-          user = await models['User'].findByEmail(email);
+          if (!user) return res.sendStatus(401);
+
+          // Check if user ever had a token like the received access token
+          const userHadThisAccessToken = user.access_tokens.find(
+            accessToken => accessToken === token
+          );
+
+          if (!userHadThisAccessToken) {
+            return res.sendStatus(401);
+          }
+
           req.refresh_token = user.refresh_token;
-        } catch (e) {
-          console.error('error after getEmailByIdToken');
-          const status = Number(e.code) || 401;
+        } catch (error) {
+          console.error('error after findByEmail', error);
 
-          res.status(status).send({
+          const status = Number(error.code) || 401;
+
+          return res.status(status).send({
             status,
             message: 'Please authenticate',
-            /*errorClass: UNAUTHORIZED*/ // for frontend processing
+            // devMessage: JSON.stringify(error),
+            // errorClass: UNAUTHORIZED // for frontend processing
           });
-
-          return;
         }
       }
       break;
 
     default: {
-      res
-        .status(400)
-        // TODO: maybe we could send an object:
-        // 1) some human-readable non-technical info for frontend,
-        // 2) some technical stuff like below - for backend
-        .send(`Please set the correct ${AUTH_METHOD_HEADER} header`);
+      return (
+        res
+          .status(400)
+          // TODO: maybe we could send an object:
+          // 1) some human-readable non-technical info for frontend,
+          // 2) some technical stuff like below - for backend logging
+          .send(`Please set the correct ${AUTH_METHOD_HEADER} header`)
+      );
     }
   }
 
@@ -101,9 +101,8 @@ const auth = async (req, res, next) => {
 
     next();
   } catch (e) {
-    // If token is too old but was valid, error is 400
-    oauth2Client.setCredentials({});
-
+    // If token is too old (or also invalid), error is 400
+    // TODO: don't proceed with invalid token!!!
     if (Number(e.code) === 400) {
       console.warn('tokenInfo in catch', tokenInfo);
       console.warn('e in catch', e);
@@ -111,21 +110,19 @@ const auth = async (req, res, next) => {
       if (!req.user || !req.refresh_token) {
         console.warn('no user or refresh token set');
 
-        res.status(401).send('No user or refresh token set');
-
-        return;
+        return res.status(401).send('No user or refresh token set');
       }
 
-      oauth2Client.setCredentials({ refresh_token: req.refresh_token });
-
-      // Try getting a refresh token
       try {
+        // Try getting a refresh token
+        oauth2Client.setCredentials({ refresh_token: req.refresh_token });
         const { token: newAccessToken } = await oauth2Client.getAccessToken();
         oauth2Client.setCredentials({});
 
         console.warn('after getting new access token');
 
         // TODO use bcrypt to hash data stored in DB
+        // TODO: optimize by making one function instead of one
         await user.addAccessToken(newAccessToken);
         await user.removeAccessToken(token);
         console.log('deleted old token');
@@ -134,6 +131,7 @@ const auth = async (req, res, next) => {
 
         next();
       } catch (error) {
+        console.warn('error', error);
         console.warn('catch getting new access token');
 
         return res.sendStatus(401);

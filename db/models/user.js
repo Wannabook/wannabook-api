@@ -8,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
     {
       first_name: DataTypes.STRING,
       last_name: DataTypes.STRING,
+      picture: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
       email: {
         type: DataTypes.STRING,
         unique: true,
@@ -89,9 +93,9 @@ module.exports = (sequelize, DataTypes) => {
     return user.save();
   };
 
-  User.prototype.updateRefreshToken = function(token) {
+  User.prototype.updateRefreshToken = function(tokens) {
     const user = this;
-    user.refresh_token = token;
+    user.refresh_token = tokens.refresh_token;
 
     return user.save();
   };

@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 
 const models = require('../../db/models');
 const { AUTH_METHOD } = require('./consts');
@@ -8,42 +9,45 @@ const router = express.Router();
 router.get('/users/login/google/callback', async (req, res) => {
   // TODO add error handling and param validation here
   const code = req.query.code;
-  const { oauth, oauth2Client } = req.app.locals;
+  const { oauth2Client } = req.app.locals;
 
   const { tokens } = await oauth2Client.getToken(code);
 
-  oauth2Client.setCredentials(tokens);
+  const decoded = jwt.decode(tokens.id_token);
 
-  const {
-    data: { email, given_name, family_name },
-  } = await oauth.userinfo.get();
+  if (decoded) {
+    const { email, given_name, family_name, picture } = decoded;
 
-  models['User'].findOne({ where: { email } }).then(async user => {
-    if (user) {
-      // TODO use bcrypt to hash data stored in DB
-      await user.removeOldAccessTokens();
-      await user.updateRefreshToken(tokens.refresh_token);
-      await user.addAccessToken(tokens.access_token);
-    } else {
-      // TODO also use bcrypt
-      // TODO create a user in our table with all info
-      // TODO add user picture to DB schema
-      await models['User'].create({
-        first_name: given_name,
-        last_name: family_name,
-        email,
-        access_tokens: [tokens.access_token],
-        refresh_token: tokens.refresh_token,
-      });
-    }
-  });
+    models['User'].findOne({ where: { email } }).then(async user => {
+      if (user) {
+        // TODO use bcrypt to hash data stored in DB
+        // TODO: optimize these requests to unite into one?
+        await user.removeOldAccessTokens();
+        await user.updateRefreshToken(tokens);
+        await user.addAccessToken(tokens.access_token);
+      } else {
+        // TODO also use bcrypt
+        await models['User'].create({
+          first_name: given_name,
+          last_name: family_name,
+          email,
+          picture,
+          access_tokens: [tokens.access_token],
+          refresh_token: tokens.refresh_token,
+          id_token: tokens.id_token,
+        });
+      }
+    });
 
-  // Frontend url to redirect to
-  res.redirect(
-    `${process.env.FRONTEND_URL}/auth/google/token?access_token=${
-      tokens.access_token
-    }&auth_method=${AUTH_METHOD.GOOGLE}&id_token=${tokens.id_token}`
-  );
+    // Send tokens to frontend
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/auth/google/token?access_token=${
+        tokens.access_token
+      }&auth_method=${AUTH_METHOD.GOOGLE}&id_token=${tokens.id_token}`
+    );
+  } else {
+    return res.status(400).send('Id token invalid');
+  }
 });
 
 router.post('/users/login/google/auth', async (req, res) => {
@@ -55,8 +59,7 @@ router.post('/users/login/google/auth', async (req, res) => {
   ];
 
   const url = await oauth2Client.generateAuthUrl({
-    // 'online' (default) or 'offline' (gets refresh_token)
-    access_type: 'offline',
+    access_type: 'offline', // gets refresh_token
     scope,
   });
 
