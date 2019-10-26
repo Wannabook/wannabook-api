@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -41,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
       first_name: this.first_name,
       last_name: this.last_name,
       email: this.email,
+      picture: this.picture,
     };
   };
 
