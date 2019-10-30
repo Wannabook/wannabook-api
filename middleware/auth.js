@@ -39,26 +39,29 @@ const auth = async (req, res, next) => {
 
     case AUTH_METHOD.GOOGLE:
       {
-        // TODO: perform checks for missing headers/tokens in a single place
-        if (!idToken) return res.sendStatus(400);
+        if (!idToken) return res.sendStatus(401);
 
         try {
           const decoded = jwt.decode(idToken);
 
           if (decoded) {
             const { email } = decoded;
-            console.warn('decoded email', email);
             user = await models['User'].findByEmail(email);
           }
 
           if (!user) return res.sendStatus(401);
 
-          // Check if user ever had a token like the received access token
+          // Check if user ever had a token like the received access_token
           const userHadThisAccessToken = user.access_tokens.find(
             accessToken => accessToken === token
           );
 
           if (!userHadThisAccessToken) {
+            // we got something totally invalid
+            console.error(
+              'access token totally invalid and never existed for this user'
+            );
+
             return res.sendStatus(401);
           }
 
@@ -71,41 +74,39 @@ const auth = async (req, res, next) => {
           return res.status(status).send({
             status,
             message: 'Please authenticate',
-            // devMessage: JSON.stringify(error),
-            // errorClass: UNAUTHORIZED // for frontend processing
+            // TODO: we could send an object:
+            // 1) some human-readable non-technical info for frontend,
+            // 2) some technical stuff like below - for backend logging
+            // devMessage: ...,
+            // errorClass: 'UNAUTHORIZED' // for frontend processing???
           });
         }
       }
       break;
 
     default: {
-      return (
-        res
-          .status(400)
-          // TODO: maybe we could send an object:
-          // 1) some human-readable non-technical info for frontend,
-          // 2) some technical stuff like below - for backend logging
-          .send(`Please set the correct ${AUTH_METHOD_HEADER} header`)
-      );
+      return res.status(401).send({
+        devMessage: `Please set the correct ${AUTH_METHOD_HEADER} header`,
+        message: 'Something went wrong',
+      });
     }
   }
 
   req.user = user;
 
   // TODO: maybe set up some universal middleware to handle all possible errors
-  let tokenInfo = {};
+  let tokenInfo;
 
   try {
     tokenInfo = await oauth2Client.getTokenInfo(token);
     console.warn('tokenInfo in try', tokenInfo);
+    req.accessToken = token;
 
     next();
   } catch (e) {
     // If token is too old (or also invalid), error is 400
-    // TODO: don't proceed with invalid token!!!
     if (Number(e.code) === 400) {
       console.warn('tokenInfo in catch', tokenInfo);
-      console.warn('e in catch', e);
 
       if (!req.user || !req.refresh_token) {
         console.warn('no user or refresh token set');
@@ -122,7 +123,7 @@ const auth = async (req, res, next) => {
         console.warn('after getting new access token');
 
         // TODO use bcrypt to hash data stored in DB
-        // TODO: optimize by making one function instead of one
+        // TODO: optimize by making one function instead of two
         await user.addAccessToken(newAccessToken);
         await user.removeAccessToken(token);
         console.log('deleted old token');
@@ -131,13 +132,11 @@ const auth = async (req, res, next) => {
 
         next();
       } catch (error) {
-        console.warn('error', error);
         console.warn('catch getting new access token');
 
         return res.sendStatus(401);
       }
     } else {
-      console.warn('error code is not 400');
       res.status(Number(e.code) || 401).send(e.message);
     }
   }

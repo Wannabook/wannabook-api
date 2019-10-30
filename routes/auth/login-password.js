@@ -23,6 +23,7 @@ router.post('/users/logout', auth, async (req, res) => {
     req.user.access_tokens = req.user.access_tokens.filter(token => {
       return token.token !== req.token;
     });
+
     await req.user.save();
     res.send();
   } catch (e) {
@@ -30,6 +31,7 @@ router.post('/users/logout', auth, async (req, res) => {
   }
 });
 
+// TODO: Discuss where we should have this feature on frontend
 router.post('/users/logoutAll', auth, async (req, res) => {
   try {
     req.user.access_tokens = [];
