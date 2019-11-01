@@ -4,9 +4,11 @@ const router = express.Router();
 const models = require('../db/models');
 const { auth } = require('../middleware/auth');
 
+// TODO: Should not be post since post should create a user. Here we just generate a new token
 router.post('/users', async (req, res) => {
   const user = await models['User'].build(req.body);
 
+  // TODO: move the token generating logic into auth?
   try {
     await user.save();
     const token = await user.generateAuthToken();
@@ -16,44 +18,8 @@ router.post('/users', async (req, res) => {
   }
 });
 
-router.post('/users/login', async (req, res) => {
-  try {
-    const user = await models['User'].findByCredentials(
-      req.body.email,
-      req.body.password
-    );
-    const token = await user.generateAuthToken();
-    res.send({ user, token });
-  } catch (e) {
-    res.status(400).send({ error: e.message });
-  }
-});
-
-router.post('/users/logout', auth, async (req, res) => {
-  try {
-    req.user.access_tokens = req.user.access_tokens.filter(token => {
-      return token.token !== req.token;
-    });
-    await req.user.save();
-    res.send();
-  } catch (e) {
-    res.status(500).send({ error: e.message });
-  }
-});
-
-router.post('/users/logoutAll', auth, async (req, res) => {
-  try {
-    req.user.access_tokens = [];
-    await req.user.save();
-
-    res.send();
-  } catch (e) {
-    res.status(500).send({ error: e.message });
-  }
-});
-
-router.get('/users/me', auth, async (req, res) => {
-  res.send(req.user);
+router.get('/users/me', auth, (req, res) => {
+  res.send({ user: req.user, accessToken: req.accessToken });
 });
 
 router.patch('/users/me', auth, async (req, res) => {
@@ -76,6 +42,7 @@ router.patch('/users/me', auth, async (req, res) => {
   }
 });
 
+// TODO: do we have this functionality on UI? like 'delete account'...
 router.delete('/users/me', auth, async (req, res) => {
   try {
     await req.user.destroy();
@@ -84,5 +51,68 @@ router.delete('/users/me', auth, async (req, res) => {
     res.status(500).send({ error: e.message });
   }
 });
+
+router.post('/test-db-ops', async (req, res) => {
+  const user = await models['User'].build({
+    first_name: 'given_name',
+    last_name: 'family_name',
+    // email,
+    // access_tokens: [tokens.access_token],
+    // refresh_token: tokens.refresh_token,
+  });
+
+  try {
+    await user.save();
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+// remove something from array
+
+// models['User']
+// .findOne({
+//   where: {
+//     email: 'ilya@demo.com',
+//   },
+// })
+// .then(user => {
+//   // const restTokens = user.access_tokens.filter(t => t !== 'someOtherToken');
+//   user
+//   .update(
+//     {
+//       access_tokens: restTokens,
+//     },
+//     {
+//       where: {
+//         email: 'ilya@demo.com',
+//       },
+//     }
+//   )
+//   .then(user => res.json(user));
+// });
+
+// add something to array
+// models['User']
+// .findOne({
+//   where: {
+//     email: 'ilya@demo.com',
+//   },
+// })
+// .then(user => {
+//   user.access_tokens.push('sometoken');
+//   user
+//   .update(
+//     {
+//       access_tokens: user.access_tokens,
+//     },
+//     {
+//       where: {
+//         email: 'ilya@demo.com',
+//       },
+//     }
+//   )
+//   .then(user => res.json(user));
+// });
 
 module.exports = router;

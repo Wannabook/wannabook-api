@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -8,20 +7,26 @@ module.exports = (sequelize, DataTypes) => {
     {
       first_name: DataTypes.STRING,
       last_name: DataTypes.STRING,
+      picture: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
       email: {
         type: DataTypes.STRING,
         unique: true,
       },
-      password: DataTypes.STRING,
+      password: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       access_tokens: {
         type: DataTypes.JSON,
-        allowNull: false,
+        allowNull: true,
         defaultValue: [],
       },
       refresh_token: {
-        type: DataTypes.JSON,
-        allowNull: false,
-        defaultValue: [],
+        type: DataTypes.STRING,
+        allowNull: true,
       },
     },
     {}
@@ -35,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
       first_name: this.first_name,
       last_name: this.last_name,
       email: this.email,
+      picture: this.picture,
     };
   };
 
@@ -68,8 +74,50 @@ module.exports = (sequelize, DataTypes) => {
     return user;
   };
 
+  User.findByEmail = async email => {
+    const user = await User.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new Error('Unable to login');
+    }
+
+    return user;
+  };
+
+  User.prototype.addAccessToken = function(token) {
+    const user = this;
+    user.access_tokens = user.access_tokens.concat(token);
+
+    return user.save();
+  };
+
+  User.prototype.updateRefreshToken = function(tokens) {
+    const user = this;
+    user.refresh_token = tokens.refresh_token;
+
+    return user.save();
+  };
+
+  User.prototype.removeAccessToken = function(token) {
+    const user = this;
+    user.access_tokens = user.access_tokens.filter(t => t !== token);
+
+    return user.save();
+  };
+
+  User.prototype.removeOldAccessTokens = function() {
+    const user = this;
+    user.access_tokens = [];
+
+    return user.save();
+  };
+
   User.addHook('beforeCreate', async user => {
-    user.password = await bcrypt.hash(user.password, 8);
+    if (user.password) {
+      user.password = await bcrypt.hash(user.password, 8);
+    }
   });
 
   return User;
