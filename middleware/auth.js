@@ -9,27 +9,35 @@ const models = require('../db/models');
 const { AUTH_METHOD } = require('../routes/auth/consts');
 
 const auth = async (req, res, next) => {
+  let idToken, user;
+
   const token = getTokenFromRequest(req);
   const authType = req.header(AUTH_METHOD_HEADER);
-  const idToken = req.header(ID_TOKEN_HEADER);
   const { oauth2Client } = req.app.locals;
 
-  if (!token || !authType) {
+  if (!authType) {
     // TODO: process these errors on UI (WNB-163)
-    return res
-      .status(401)
-      .send('Either token or X-Auth-Method header were not set');
+    return res.status(400).send({
+      devMessage: 'X-Auth-Method header were not set',
+      message: 'Something went wrong...',
+    });
   }
 
-  let user;
-
   switch (authType) {
-    // TODO: ensure it works and sync with frontend in WNB-154
     case AUTH_METHOD.LOGIN_PASSWORD:
       {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
           user = await models['User'].findByPk(decoded.id);
+
+          if (user) {
+            req.user = user;
+            next();
+          } else {
+            return res.status(401).send({
+              message: 'Please authenticate',
+            });
+          }
         } catch (e) {
           // TODO: test the case when jwt fails verification
           return res.status(401).send(e);
@@ -39,6 +47,8 @@ const auth = async (req, res, next) => {
 
     case AUTH_METHOD.GOOGLE:
       {
+        idToken = req.header(ID_TOKEN_HEADER);
+
         if (!idToken) return res.sendStatus(401);
 
         try {

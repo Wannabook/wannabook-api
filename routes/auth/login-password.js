@@ -5,14 +5,10 @@ const models = require('../../db/models');
 
 const router = express.Router();
 
-router.post('/users/login', async (req, res) => {
+router.post('/users/login', auth, async (req, res) => {
   try {
-    const user = await models['User'].findByCredentials(
-      req.body.email,
-      req.body.password
-    );
-    const token = await user.generateAuthToken();
-    res.send({ user, token });
+    const token = await req.user.generateAuthToken();
+    res.send({ user: req.user, token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
   } catch (e) {
     res.status(400).send({ error: e.message });
   }
@@ -44,5 +40,23 @@ router.post('/users/logoutAll', auth, async (req, res) => {
 });
 
 // TODO: Create signup routes!!!
+router.post('/users/signup', async (req, res) => {
+  try {
+    const { email, password } = req;
+
+    if (!email || !password) {
+      return res.status(400).send({ message: 'Email or password not set' });
+    }
+
+    const user = await models['User'].build({ email, password });
+    const token = await user.generateAuthToken(email);
+
+    await user.save();
+
+    res.status(201).send({ token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
+  } catch (e) {
+    res.status(500).send({ error: e.message });
+  }
+});
 
 module.exports = router;

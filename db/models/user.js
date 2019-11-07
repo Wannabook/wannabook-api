@@ -44,13 +44,17 @@ module.exports = (sequelize, DataTypes) => {
     };
   };
 
-  User.prototype.generateAuthToken = async function() {
+  User.prototype.generateAuthToken = async function(email) {
     const user = this;
-    const token = jwt.sign({ id: user.id.toString() }, process.env.JWT_SECRET, {
-      expiresIn: 3600,
-    });
+    const token = jwt.sign(
+      { email: email.toString() },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: 3600,
+      }
+    );
 
-    user.access_tokens = user.access_tokens.concat({ token });
+    user.access_tokens = user.access_tokens.concat(token);
     await user.save();
 
     return token;
