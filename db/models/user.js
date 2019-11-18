@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         unique: true,
       },
+      phone: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
       password: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -41,6 +45,7 @@ module.exports = (sequelize, DataTypes) => {
       last_name: this.last_name,
       email: this.email,
       picture: this.picture,
+      phone: this.phone,
     };
   };
 
@@ -122,6 +127,13 @@ module.exports = (sequelize, DataTypes) => {
     if (user.password) {
       user.password = await bcrypt.hash(user.password, 8);
     }
+    // TODO: security, should we hash phones and emails?
+    // if (user.phone) {
+    //   user.phone = await bcrypt.hash(user.phone, 8);
+    // }
+    // if (user.email) {
+    //   user.email = await bcrypt.hash(user.email, 8);
+    // }
   });
 
   return User;
