@@ -39,21 +39,24 @@ router.post('/users/logoutAll', auth, async (req, res) => {
   }
 });
 
-// TODO: Create signup routes!!!
 router.post('/users/signup', async (req, res) => {
   try {
-    const { email, password } = req;
+    const { email, password, phone, name } = req;
 
-    if (!email || !password) {
-      return res.status(400).send({ message: 'Email or password not set' });
+    if (!email || !password || !phone || !name) {
+      return res
+        .status(400)
+        .send({ message: 'Пожалуйста, заполните все поля регистрации' });
     }
 
-    const user = await models['User'].build({ email, password });
+    const user = await models['User'].build({ email, password, name, phone });
     const token = await user.generateAuthToken(email);
 
     await user.save();
 
-    res.status(201).send({ token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
+    res
+      .status(201)
+      .send({ user, token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
   } catch (e) {
     res.status(500).send({ error: e.message });
   }
