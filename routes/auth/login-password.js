@@ -2,6 +2,7 @@ const express = require('express');
 
 const { auth } = require('../../middleware/auth');
 const models = require('../../db/models');
+const { AUTH_METHOD } = require('../auth/consts');
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.post('/users/logout', auth, async (req, res) => {
 });
 
 // TODO: Discuss where we should have this feature on frontend
+// log out from all devices
 router.post('/users/logoutAll', auth, async (req, res) => {
   try {
     req.user.access_tokens = [];
@@ -41,15 +43,31 @@ router.post('/users/logoutAll', auth, async (req, res) => {
 
 router.post('/users/signup', async (req, res) => {
   try {
-    const { email, password, phone, name } = req;
+    const { email, password, phone, name } = req.body;
 
     if (!email || !password || !phone || !name) {
-      return res
-        .status(400)
-        .send({ message: 'Пожалуйста, заполните все поля регистрации' });
+      return (
+        res
+          .status(400)
+          // TODO would be nice to make these messages language-independent
+          .send({ message: 'Пожалуйста, заполните все поля регистрации' })
+      );
     }
 
-    const user = await models['User'].build({ email, password, name, phone });
+    const alreadyExists = await models['User'].findByEmail(email);
+
+    if (alreadyExists) {
+      return res.status(400).send({
+        message: 'Пользователь с таким почтовым ящиком уже существует',
+      });
+    }
+
+    const user = await models['User'].build({
+      email,
+      password,
+      first_name: name,
+      phone,
+    });
     const token = await user.generateAuthToken(email);
 
     await user.save();

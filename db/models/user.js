@@ -88,9 +88,10 @@ module.exports = (sequelize, DataTypes) => {
       where: { email },
     });
 
-    if (!user) {
-      throw new Error('Unable to login');
-    }
+    // TODO Not finding a user in DB should not lead to 500 error
+    // if (!user) {
+    //   throw new Error('Unable to login');
+    // }
 
     return user;
   };

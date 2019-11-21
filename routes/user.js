@@ -4,7 +4,7 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 
 router.get('/users/me', auth, (req, res) => {
-  res.send({ user: req.user, accessToken: req.accessToken });
+  res.send({ user: req.user, accessToken: req.token });
 });
 
 router.patch('/users/me', auth, async (req, res) => {

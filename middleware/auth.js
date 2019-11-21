@@ -28,10 +28,11 @@ const auth = async (req, res, next) => {
       {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
-          user = await models['User'].findByPk(decoded.id);
+          user = await models['User'].findByEmail(decoded.email);
 
           if (user) {
             req.user = user;
+            req.token = token;
             next();
           } else {
             return res.status(401).send({
