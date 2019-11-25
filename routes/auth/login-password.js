@@ -6,10 +6,29 @@ const { AUTH_METHOD } = require('../auth/consts');
 
 const router = express.Router();
 
-router.post('/users/login', auth, async (req, res) => {
+router.post('/users/login', async (req, res) => {
   try {
-    const token = await req.user.generateAuthToken();
-    res.send({ user: req.user, token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return (
+        res
+          .status(400)
+          // TODO would be nice to make these messages language-independent
+          .send({ message: 'Пожалуйста, заполните все поля' })
+      );
+    }
+
+    const user = await models['User'].findByCredentials(email, password);
+
+    if (!user) {
+      return res.status(400).send({
+        message: 'Неправильный почтовый ящик или пароль',
+      });
+    }
+
+    const token = await user.generateAuthToken(email);
+    res.send({ user, token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
   } catch (e) {
     res.status(400).send({ error: e.message });
   }

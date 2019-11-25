@@ -71,13 +71,13 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     if (!user) {
-      throw new Error('Unable to login');
+      return null;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      throw new Error('Wrong password');
+      return null;
     }
 
     return user;
