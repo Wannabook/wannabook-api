@@ -33,7 +33,10 @@ const auth = async (req, res, next) => {
           if (user) {
             req.user = user;
             req.token = token;
+
             next();
+
+            return;
           } else {
             return res.status(401).send({
               message: 'Please authenticate',
