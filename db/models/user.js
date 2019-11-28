@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         unique: true,
       },
+      phone: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
       password: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -41,16 +45,21 @@ module.exports = (sequelize, DataTypes) => {
       last_name: this.last_name,
       email: this.email,
       picture: this.picture,
+      phone: this.phone,
     };
   };
 
-  User.prototype.generateAuthToken = async function() {
+  User.prototype.generateAuthToken = async function(email) {
     const user = this;
-    const token = jwt.sign({ id: user.id.toString() }, process.env.JWT_SECRET, {
-      expiresIn: 3600,
-    });
+    const token = jwt.sign(
+      { email: email.toString() },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: 3600,
+      }
+    );
 
-    user.access_tokens = user.access_tokens.concat({ token });
+    user.access_tokens = user.access_tokens.concat(token);
     await user.save();
 
     return token;
@@ -62,13 +71,13 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     if (!user) {
-      throw new Error('Unable to login');
+      return null;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      throw new Error('Wrong password');
+      return null;
     }
 
     return user;
@@ -79,9 +88,10 @@ module.exports = (sequelize, DataTypes) => {
       where: { email },
     });
 
-    if (!user) {
-      throw new Error('Unable to login');
-    }
+    // TODO Not finding a user in DB should not lead to 500 error
+    // if (!user) {
+    //   throw new Error('Unable to login');
+    // }
 
     return user;
   };
@@ -118,6 +128,13 @@ module.exports = (sequelize, DataTypes) => {
     if (user.password) {
       user.password = await bcrypt.hash(user.password, 8);
     }
+    // TODO: security, should we hash phones and emails?
+    // if (user.phone) {
+    //   user.phone = await bcrypt.hash(user.phone, 8);
+    // }
+    // if (user.email) {
+    //   user.email = await bcrypt.hash(user.email, 8);
+    // }
   });
 
   return User;

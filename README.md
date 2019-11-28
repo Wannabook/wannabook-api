@@ -24,6 +24,14 @@ To delete the entire DB, run `npm run db:drop`.
 
 4. Fill the DB with test date by running `env-cmd -f ./env/dev.env npx sequelize db:seed:all`
 
+### Database recreation if entity fields change
+0. Ensure DB is connected to any client! Otherwise deletion will fail 
+1. Delete DB with `npm run db:drop:dev`
+2. Edit User model **as well as** `create-user` migration
+3. Do `npm run db:create:dev`
+4. Do `npm run migrate:dev`
+
+
 ### Git rules
 * merges are only after code review
 * one cannot push into develop branch straightly. We create pull requests instead and wait for others' approval before merging
