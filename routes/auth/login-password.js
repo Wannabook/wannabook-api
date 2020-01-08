@@ -30,7 +30,7 @@ router.post('/users/login', async (req, res) => {
     const token = await user.generateAuthToken(email);
     res.send({ user, token, authMethod: AUTH_METHOD.LOGIN_PASSWORD });
   } catch (e) {
-    res.status(400).send({ error: e.message });
+    res.status(400).send({ message: 'Неправильный почтовый ящик или пароль' });
   }
 });
 

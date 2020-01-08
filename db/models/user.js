@@ -74,6 +74,11 @@ module.exports = (sequelize, DataTypes) => {
       return null;
     }
 
+    // there might be cases when user once logged in with google,
+    // forgot it and now tries logging in with login-password model.
+    // In this case their password will be always `null`.
+    //  TODO we could hint to the user that they might have logged in
+    //   with some social network (dunno whether it's secure)
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
